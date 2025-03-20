@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management</title>
+    <link rel="stylesheet" href="order_management.css">
+</head>
+<body>
+    <h2>Order Management System</h2>
+    <form id="orderForm">
+        <input type="hidden" id="orderId">
+        <input type="text" id="customerName" placeholder="Enter Customer Name" required>
+        <input type="text" id="orderItem" placeholder="Enter Order Item" required>
+        <button type="submit">Submit</button>
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Customer Name</th>
+                <th>Order Item</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="orderTableBody"></tbody>
+    </table>
+    <script src="order_management.js"></script>
+</body>
+</html>

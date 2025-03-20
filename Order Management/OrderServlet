@@ -1,0 +1,87 @@
+import java.io.IOException;
+import java.sql.*;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+@WebServlet("/OrderServlet")
+public class OrderServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+    private static final String JDBC_URL = "jdbc:mysql://localhost:3306/orderdb";
+    private static final String JDBC_USER = "root";
+    private static final String JDBC_PASSWORD = "Joelking@05";
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String action = request.getParameter("action");
+        
+        try (Connection conn = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD)) {
+            switch (action) {
+                case "create":
+                    createOrder(request, conn);
+                    break;
+                case "update":
+                    updateOrder(request, conn);
+                    break;
+                case "delete":
+                    deleteOrder(request, conn);
+                    break;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        response.setContentType("application/json");
+        response.getWriter().write("{\"status\":\"success\"}");
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        JSONArray orders = new JSONArray();
+        try (Connection conn = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD)) {
+            ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM orders");
+            while (rs.next()) {
+                JSONObject order = new JSONObject();
+                order.put("id", rs.getInt("id"));
+                order.put("customer", rs.getString("customer"));
+                order.put("product", rs.getString("product"));
+                order.put("quantity", rs.getInt("quantity"));
+                orders.put(order);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        response.setContentType("application/json");
+        response.getWriter().write(orders.toString());
+    }
+
+    private void createOrder(HttpServletRequest request, Connection conn) throws SQLException {
+        String customer = request.getParameter("customer");
+        String product = request.getParameter("product");
+        int quantity = Integer.parseInt(request.getParameter("quantity"));
+        PreparedStatement stmt = conn.prepareStatement("INSERT INTO orders (customer, product, quantity) VALUES (?, ?, ?)");
+        stmt.setString(1, customer);
+        stmt.setString(2, product);
+        stmt.setInt(3, quantity);
+        stmt.executeUpdate();
+    }
+
+    private void updateOrder(HttpServletRequest request, Connection conn) throws SQLException {
+        int id = Integer.parseInt(request.getParameter("id"));
+        String customer = request.getParameter("customer");
+        String product = request.getParameter("product");
+        int quantity = Integer.parseInt(request.getParameter("quantity"));
+        PreparedStatement stmt = conn.prepareStatement("UPDATE orders SET customer=?, product=?, quantity=? WHERE id=?");
+        stmt.setString(1, customer);
+        stmt.setString(2, product);
+        stmt.setInt(3, quantity);
+        stmt.setInt(4, id);
+        stmt.executeUpdate();
+    }
+
+    private void deleteOrder(HttpServletRequest request, Connection conn) throws SQLException {
+        int id = Integer.parseInt(request.getParameter("id"));
+        PreparedStatement stmt = conn.prepareStatement("DELETE FROM orders WHERE id=?");
+        stmt.setInt(1, id);
+        stmt.executeUpdate();
+    }
+}
